@@ -1,0 +1,21 @@
+{
+  "name": "tsentiment",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.15.2",
+    "firebase-admin": "^5.0.0",
+    "kraken-api": "^0.1.7",
+    "moving-average": "^0.1.1",
+    "progress": "^2.0.0",
+    "sentiment": "^4.0.0",
+    "socket.io": "^1.7.3",
+    "twit": "^2.2.5"
+  }
+}
