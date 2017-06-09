@@ -17,34 +17,32 @@ exports =
 
         var ma; // moving average
         var intervalMA;
-        var interval = false;
 
 
-        var previousTime;
+        var previous;
+    var previousValue;
         var ret = {};
 
 
         ret.push =
             function push(time, value, interval) {
-                if (previousTime) {
+                if (previous) {
 
-                    var a = (2 / ((timespan / 1000 / 60 / interval) + 1));
-                    ma = (value - ma) * a + ma;
-                    if (new Date(time).getMinutes() % interval == 0) {
-                        intervalMA = ma;
-                    }
-                    
-                    //console.log((value - intervalMA) * a);
-
-                    //console.log(isFinite(ma));
-
+//                    var a = (2 / (timespan + 1)) * interval;
+//                    ma = (value - previous) * a + previous;
+//                    console.log(value);
+//                    console.log(previous);
+//                    console.log(value-previous);
+//                    console.log(ma);
+//                    previous = ma;
+                    var a = (2/ (timespan + 1)) * interval;
+                    ma = a * previousValue + (1-a) *previous;
+                    previousValue = value;
+                    previous = ma;
 
                 } else {
-                    ma = value;
-                    intervalMA = 0;
-                    //console.log(intervalMA);
+                    previous = value;
                 }
-                previousTime = time;
             };
 
 

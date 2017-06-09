@@ -15,9 +15,9 @@ admin.initializeApp({
 var minute = 60 * 1000;
 var justStartedWait = 15 * 26;
 var minutes = 15;
-var longTime = minutes * 26 * minute;
-var shortTime = minutes * 12 * minute;
-var signalTime = minutes * 9 * minute;
+var longTime = minutes * 26;
+var shortTime = minutes * 12;
+var signalTime = minutes * 9;
 var MA = require('./moving-average');
 var lt = MA(longTime);
 var st = MA(shortTime);
@@ -55,7 +55,7 @@ ref.child("data").once("value", function (data) {
         bar.tick();
         bar.render();
         var dateKey = new Date(key * 1000);
-        if(dateKey.getMinutes() % minutes == 0)
+        //if(dateKey.getMinutes() % minutes == 0)
         {
             lt.push(formatDateTime(key), data.val()[key], minutes);
             st.push(formatDateTime(key), data.val()[key], minutes);
@@ -129,10 +129,10 @@ var scheduled_func = schedule.scheduleJob(rule, function () {
             //console.log(data.result);
             //display(new_data[0], new_data[4]);
             //moving average
-            lt.push(formatDateTime(new_data[0]), new_data[4], minutes);
-            st.push(formatDateTime(new_data[0]), new_data[4], minutes);
+            lt.push(formatDateTime(new_data[0]), new_data[4], 1);
+            st.push(formatDateTime(new_data[0]), new_data[4], 1);
             var MACD = st.movingAverage() - lt.movingAverage();
-            sigT.push(formatDateTime(new_data[0]), MACD, minutes);
+            sigT.push(formatDateTime(new_data[0]), MACD, 1);
             var hist = MACD - sigT.movingAverage();
             //calculateLongOrderVolume();
             //check buy or sell
