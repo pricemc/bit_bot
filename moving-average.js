@@ -20,13 +20,14 @@ exports =
 
 
         var previous;
-    var previousValue;
+        var previousValue;
         var ret = {};
+        var previousTime;
 
 
         ret.push =
             function push(time, value, interval) {
-                if (previous) {
+                if (previous && time > previousTime) {
 
 //                    var a = (2 / (timespan + 1)) * interval;
 //                    ma = (value - previous) * a + previous;
@@ -39,9 +40,10 @@ exports =
                     ma = a * previousValue + (1-a) *previous;
                     previousValue = value;
                     previous = ma;
-
-                } else {
+                    previousTime = time;
+                } else if (!previous) {
                     previous = value;
+                    previousTime = time;
                 }
             };
 

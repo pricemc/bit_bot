@@ -55,7 +55,7 @@ ref.child("data").once("value", function (data) {
         bar.tick();
         bar.render();
         var dateKey = new Date(key * 1000);
-        //if(dateKey.getMinutes() % minutes == 0)
+        if(dateKey.getMinutes() % minutes == 0)
         {
             lt.push(formatDateTime(key), data.val()[key], minutes);
             st.push(formatDateTime(key), data.val()[key], minutes);
@@ -123,27 +123,21 @@ var scheduled_func = schedule.scheduleJob(rule, function () {
             console.log(error);
         } else {
             new_data = data.result.XXBTZUSD[data.result.XXBTZUSD.length - 1];
-
-            //console.log("The time is " + formatDateTime(new_data[0]) + " at interval 1");
-            //console.log("New close is " + new_data[4] + " and is " + ((new_data[4]-last_close)/last_close).toPrecision(4) + "%");
-            //console.log(data.result);
-            //display(new_data[0], new_data[4]);
-            //moving average
-            lt.push(formatDateTime(new_data[0]), new_data[4], 1);
-            st.push(formatDateTime(new_data[0]), new_data[4], 1);
-            var MACD = st.movingAverage() - lt.movingAverage();
-            sigT.push(formatDateTime(new_data[0]), MACD, 1);
-            var hist = MACD - sigT.movingAverage();
+            
+            
             //calculateLongOrderVolume();
             //check buy or sell
+            push(data);
+            var MACD = st.movingAverage() - lt.movingAverage();
+            var hist = MACD - sigT.movingAverage();
             var buySell = checkOrder(MACD, hist);
             if (buySell == 1) console.log("LONG");
             else if (buySell == 2) console.log("SHORT");
             else if (buySell == -2) console.log("CLOSE");
             if (!(buySell == 0 || buySell == -1)) display(new_data[0], new_data[4]);
-            else display2(new_data[0], new_data[4]);
+            else if (new Date(formatDateTime(new_data[0])).getMinutes() % minutes == 0) display2(new_data[0], new_data[4]);
             //switch buy or sell or close
-
+            display2(new_data[0], new_data[4]);
             //add to database
             addToDatabase(data.result.XXBTZUSD);
             ref.update({
@@ -154,6 +148,15 @@ var scheduled_func = schedule.scheduleJob(rule, function () {
         }
     });
 });
+
+var push = function(data) {
+    for(var new_data in data){
+        lt.push(formatDateTime(new_data[0]), new_data[4], 1);
+        st.push(formatDateTime(new_data[0]), new_data[4], 1);
+        var MACD = st.movingAverage() - lt.movingAverage();
+        sigT.push(formatDateTime(new_data[0]), MACD, 1);
+    }
+}
 
 var display = function (time, close) {
 
@@ -169,7 +172,7 @@ var display = function (time, close) {
 var display2 = function (time, close) {
 
     console.log(formatDateTime2(time) + " MACD: " +
-        (st.movingAverage() - lt.movingAverage()).toPrecision(4) +
+        (st.movingAverage() - lt.movingAverage()).toPrecision(6) +
         "\tSignal: " + sigT.movingAverage().toPrecision(4) +
         "\tHistogram: " + ((st.movingAverage() - lt.movingAverage()) - sigT.movingAverage()).toPrecision(4) +
         "\tClose: " + close);
