@@ -55,8 +55,7 @@ ref.child("data").once("value", function (data) {
         bar.tick();
         bar.render();
         var dateKey = new Date(key * 1000);
-        if(dateKey.getMinutes() % minutes == 0)
-        {
+        if (dateKey.getMinutes() % minutes == 0) {
             lt.push(formatDateTime(key), data.val()[key], minutes);
             st.push(formatDateTime(key), data.val()[key], minutes);
             sigT.push(formatDateTime(key), st.movingAverage() - lt.movingAverage(), minutes);
@@ -115,7 +114,7 @@ rule.second = 5;
 //ref.child("since").set(null);
 //ref.child("data").set(null);
 var scheduled_func = schedule.scheduleJob(rule, function () {
-    if(justStartedWait != 0) justStartedWait--;
+    if (justStartedWait != 0) justStartedWait--;
     else justStarted = false;
     kraken.api('OHLC', kraken_rule, function (error, data) {
         if (error) {
@@ -123,8 +122,8 @@ var scheduled_func = schedule.scheduleJob(rule, function () {
             console.log(error);
         } else {
             new_data = data.result.XXBTZUSD[data.result.XXBTZUSD.length - 1];
-            
-            
+
+
             //calculateLongOrderVolume();
             //check buy or sell
             push(data);
@@ -149,8 +148,10 @@ var scheduled_func = schedule.scheduleJob(rule, function () {
     });
 });
 
-var push = function(data) {
-    for(var new_data in data){
+var push = function (data) {
+    for (var i = 0; i < data.result.XXBTZUSD.length; i++) {
+
+        var new_data = data.result.XXBTZUSD[i];
         lt.push(formatDateTime(new_data[0]), new_data[4], 1);
         st.push(formatDateTime(new_data[0]), new_data[4], 1);
         var MACD = st.movingAverage() - lt.movingAverage();
@@ -218,30 +219,32 @@ var checkOrder = function (MACD, hist) {
 }
 
 var longOrder = function (balance, currency, cost) {
-    var longOrderRule = {pair: "XBTUSD", 
-                         type: "buy",
-                        ordertype: "market",
-                        leverage: 2};
+    var longOrderRule = {
+        pair: "XBTUSD",
+        type: "buy",
+        ordertype: "market",
+        leverage: 2
+    };
     var volume = calculateLongOrderVolume();
     longOrderRule.volume = volume;
     kraken.api('AddOrder', longOrderRule, function (error, data) {
-        
+
     })
 }
 
-var calculateLongOrderVolume = function() {
+var calculateLongOrderVolume = function () {
     //get balance
-    kraken.api('Balance', null, function(error, data) {
-        if(error){
-            console.log("TradeBalance");
-            console.log(error);
-        }else{
-            console.log(data);
-            console.log(data.USD);
-        }
-    })
-    //get price
-    //return balance/price
+    kraken.api('Balance', null, function (error, data) {
+            if (error) {
+                console.log("TradeBalance");
+                console.log(error);
+            } else {
+                console.log(data);
+                console.log(data.USD);
+            }
+        })
+        //get price
+        //return balance/price
 }
 
 var shortOrder = function (balance, currency, cost) {
@@ -249,13 +252,15 @@ var shortOrder = function (balance, currency, cost) {
 }
 
 var closeLongOrder = function () {
-    var longOrderRule = {pair: "XBTUSD", 
-                         type: sell,
-                        ordertype: market,
-                        leverage: 2,
-                        volume: 0};
+    var longOrderRule = {
+        pair: "XBTUSD",
+        type: sell,
+        ordertype: market,
+        leverage: 2,
+        volume: 0
+    };
     kraken.api('AddOrder', longOrderRule, function (error, data) {
-        
+
     })
 }
 

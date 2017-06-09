@@ -27,8 +27,8 @@ exports =
 
         ret.push =
             function push(time, value, interval) {
+            
                 if (previous && time > previousTime) {
-
 //                    var a = (2 / (timespan + 1)) * interval;
 //                    ma = (value - previous) * a + previous;
 //                    console.log(value);
