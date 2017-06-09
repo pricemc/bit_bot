@@ -13,7 +13,6 @@ admin.initializeApp({
     databaseURL: "https://bitcoin-kraken.firebaseio.com"
 });
 var minute = 60 * 1000;
-var justStartedWait = 15 * 26;
 var minutes = 15;
 var longTime = minutes * 26;
 var shortTime = minutes * 12;
@@ -25,7 +24,7 @@ var sigT = MA(signalTime);
 
 var order = -1;
 var justStartedWait = 60;
-var justStarted = false;
+var justStarted = true;
 
 var db = admin.database();
 var ref = db.ref("kraken");
@@ -197,73 +196,99 @@ var checkOrder = function (MACD, hist) {
     //if histo is positive and MACD is positive, and there is no order, buy
     if (hist > 0.05 && MACD > 0.05 && order == -1 && !justStarted) {
         order = 0;
+        longOrder();
         return 1;
     }
     //else if histo is neg and MACD is neg and there is no order, short
     else if (hist < -0.05 && MACD < -0.05 && order == -1 && !justStarted) {
         order = 1;
+        shortOrder();
         return 2;
     }
     //else if any of above and there is an order, stay
     else if ((((hist > 0 && MACD > 0) || (hist < 0 && MACD < 0) || MACD > 1 || MACD < -1) && order != -1 && !justStarted)) {
         return -1;
-    } else if (order == -1)
+    } else if (order == -1) {
+        if (justStarted)
+            console.log("Algorithm Started");
+        justStarted = false;
         return 0;
+    }
     //else close order
     else {
         justStarted = false;
+        closeOrder();
         order = -1;
         return -2;
     }
 
 }
 
-var longOrder = function (balance, currency, cost) {
+var longOrder = function () {
     var longOrderRule = {
         pair: "XBTUSD",
         type: "buy",
         ordertype: "market",
         leverage: 2
     };
-    var volume = calculateLongOrderVolume();
-    longOrderRule.volume = volume;
+    longOrderRule.volume = calculateOrderVolume();
     kraken.api('AddOrder', longOrderRule, function (error, data) {
 
+        console.log(data);
     })
 }
 
-var calculateLongOrderVolume = function () {
+var calculateOrderVolume = function () {
     //get balance
-    kraken.api('Balance', null, function (error, data) {
+    kraken.api('TradeBalance', null, function (error, data) {
             if (error) {
                 console.log("TradeBalance");
                 console.log(error);
             } else {
                 console.log(data);
-                console.log(data.USD);
+                console.log(data.result.mf);
             }
+
+            return data.result.mf;
         })
         //get price
         //return balance/price
 }
 
-var shortOrder = function (balance, currency, cost) {
-
+var shortOrder = function () {
+    var shortOrderRule = {
+        pair: "XBTUSD",
+        type: "sell",
+        ordertype: "market",
+        leverage: 2
+    };
+    longOrderRule.volume = calculateOrderVolume();
+    kraken.api('AddOrder', longOrderRule, function (error, data) {
+        console.log(data);
+    })
 }
 
-var closeLongOrder = function () {
+var closeOrder = function () {
     var longOrderRule = {
         pair: "XBTUSD",
-        type: sell,
+        type: "sell",
         ordertype: market,
         leverage: 2,
         volume: 0
     };
+    var shortOrderRule = {
+        pair: "XBTUSD",
+        type: "buy",
+        ordertype: "market",
+        leverage: 2,
+        volume: 0
+    };
+    var rule;
+    if (order == 0) rule = longOrderRule;
+    else if (order == 1) rule = shortOrderRule;
+    else return;
     kraken.api('AddOrder', longOrderRule, function (error, data) {
+        console.log(data);
 
     })
-}
-
-var closeShortOrder = function () {
-
 }
