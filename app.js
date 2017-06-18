@@ -4,6 +4,7 @@ var api_key = 'JDlNj5hdQHQtN/gqZAK5rgi8YEy1wnd834/0wj0YXr+xGaMzT1KDEcaF';
 var private_key = 'SipBiPsXAGayhfHr8bQJ8Thfr4YeaEcnfVtDV41zdBmWNMxNsYFjtIauMxBS+99XdxHY/TtqzxEWdatIJQ0Yxw==';
 var kraken = new KrakenClient(api_key, private_key);
 var ProgressBar = require('progress');
+var winston = require('winston');
 
 var admin = require('firebase-admin');
 var serviceAccount = require("./admin_config.json");
@@ -13,7 +14,7 @@ admin.initializeApp({
     databaseURL: "https://bitcoin-kraken.firebaseio.com"
 });
 var minute = 60 * 1000;
-var minutes = 15;
+var minutes = 30;
 var longTime = minutes * 26;
 var shortTime = minutes * 10;
 var signalTime = minutes * 9;
@@ -31,7 +32,7 @@ var pair = base + "" + quote;
 var pair_alt = 'X' + base + 'Z' + quote;
 
 var db = admin.database();
-var ref = db.ref("kraken/" + pair);
+var ref = db.ref("kraken/2/" + getRandomInt(0, 1000) + "/" + pair);
 var OHLCRef = ref.child("OHLC");
 var kraken_rule = {
     pair: pair
@@ -61,9 +62,9 @@ var process = function () {
             var dateKey = new Date(key * 1000);
             //if (dateKey.getMinutes() % minutes == 0) 
             {
-                lt.push(formatDateTime(key), data.val()[key], minutes);
-                st.push(formatDateTime(key), data.val()[key], minutes);
-                sigT.push(formatDateTime(key), st.movingAverage() - lt.movingAverage(), minutes);
+                lt.push(formatDateTime(key), data.val()[key], 1);
+                st.push(formatDateTime(key), data.val()[key], 1);
+                sigT.push(formatDateTime(key), st.movingAverage() - lt.movingAverage(), 1);
             }
             // console.log("Time: " + formatDateTime(key));
             // console.log("MACD: " + (st.movingAverage()-lt.movingAverage()));
@@ -76,6 +77,12 @@ var process = function () {
             }
         }
     })
+}
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
 }
 kraken.api('OHLC', kraken_rule, function (error, data) {
     if (error) {
@@ -107,8 +114,8 @@ function formatDateTime(input) {
 
 function formatDateTime2(input) {
     var date = new Date(input * 1000).toTimeString().split(' ')[0].split(':');
+    //new Date(input * 1000).toTimeString().split(' ')[0].split(':');
     return date[0] + ":" + date[1];
-    return input * 1000;
 };
 
 
@@ -117,7 +124,7 @@ var rule = new schedule.RecurrenceRule();
 var last_rule = false;
 var last_close = 0;
 var new_data = 0;
-rule.second = 0;
+rule.second = 1;
 //ref.child("since").set(null);
 //ref.child("data").set(null);
 var scheduled_func = schedule.scheduleJob(rule, function () {
@@ -143,7 +150,7 @@ var scheduled_func = schedule.scheduleJob(rule, function () {
             if (!(buySell == 0 || buySell == -1)) display(new_data[0], new_data[4]);
             else if (new Date(formatDateTime(new_data[0])).getMinutes() % minutes == 0) display2(new_data[0], new_data[4]);
             //switch buy or sell or close
-            display2(new_data[0], new_data[4]);
+            else display2(new_data[0], new_data[4]);
             //add to database
             addToDatabase(data.result[pair_alt]);
             ref.update({

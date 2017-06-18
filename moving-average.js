@@ -27,24 +27,14 @@ exports =
 
         ret.push =
             function push(time, value, interval) {
-            
-                if (previous && time > previousTime) {
-//                    var a = (2 / (timespan + 1)) * interval;
-//                    ma = (value - previous) * a + previous;
-//                    console.log(value);
-//                    console.log(previous);
-//                    console.log(value-previous);
-//                    console.log(ma);
-//                    previous = ma;
-                    var a = (2/ (timespan + 1)) * interval;
-                    ma = a * previousValue + (1-a) *previous;
-                    previousValue = value;
-                    previous = ma;
-                    previousTime = time;
-                } else if (!previous) {
-                    previous = value;
-                    previousTime = time;
-                }
+                if (!previous) ma = value;
+                previous = ma;
+
+                var a = (2 / (timespan / interval + 1));
+                //ma = ((value - previous) * a) + previous;
+                if (time > previousTime) ma = value * a + (1 - a) * previous;
+                //console.log(ma);
+                previousTime = time;
             };
 
 
